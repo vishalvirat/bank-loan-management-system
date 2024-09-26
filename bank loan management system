@@ -1,0 +1,183 @@
+class Loan:
+    def _init_(self, customer_id, loan_amount, interest_rate, loan_term):
+        self.customer_id = customer_id
+        self.loan_amount = loan_amount
+        self.interest_rate = interest_rate / 100 / 12  # Convert to monthly interest rate
+        self.loan_term = loan_term * 12  # Convert years to months
+
+    def calculate_interest(self):
+        interest = self.loan_amount * self.interest_rate * self.loan_term
+        return interest
+
+    def generate_payment_schedule(self):
+        # Monthly payment calculation using the formula for an amortizing loan
+        if self.loan_term > 0:
+            monthly_payment = (self.loan_amount * self.interest_rate) / (1 - (1 + self.interest_rate) ** -self.loan_term)
+            return monthly_payment
+        return 0
+
+class Customer:
+    def _init_(self, customer_id, name, address):
+        self.customer_id = customer_id
+        self.name = name
+        self.address = address
+
+class Bank:
+    def _init_(self):
+        self.customers = {}
+        self.loans = {}
+
+    def add_customer(self, customer):
+        self.customers[customer.customer_id] = customer
+
+    def update_customer(self, customer_id, name=None, address=None):
+        customer = self.customers.get(customer_id)
+        if customer:
+            if name:
+                customer.name = name
+            if address:
+                customer.address = address
+            print(f"Customer {customer_id} updated.")
+        else:
+            print("Customer not found.")
+
+    def delete_customer(self, customer_id):
+        if customer_id in self.customers:
+            del self.customers[customer_id]
+            print(f"Customer {customer_id} deleted.")
+        else:
+            print("Customer not found.")
+
+    def add_loan(self, loan):
+        self.loans[loan.customer_id] = loan
+
+    def update_loan(self, customer_id, loan_amount=None, interest_rate=None, loan_term=None):
+        loan = self.loans.get(customer_id)
+        if loan:
+            if loan_amount:
+                loan.loan_amount = loan_amount
+            if interest_rate:
+                loan.interest_rate = interest_rate / 100 / 12  # Convert to monthly interest rate
+            if loan_term:
+                loan.loan_term = loan_term * 12  # Convert years to months
+            print(f"Loan for Customer {customer_id} updated.")
+        else:
+            print("Loan not found.")
+
+    def delete_loan(self, customer_id):
+        if customer_id in self.loans:
+            del self.loans[customer_id]
+            print(f"Loan for Customer {customer_id} deleted.")
+        else:
+            print("Loan not found.")
+
+    def get_customer(self, customer_id):
+        return self.customers.get(customer_id)
+
+    def get_loan(self, customer_id):
+        return self.loans.get(customer_id)
+
+def main():
+    bank = Bank()
+
+    while True:
+        print("\n------------------- Welcome to team shadow Bank Loan Management System -------------------")
+        print("1. Add Customer")
+        print("2. Update Customer")
+        print("3. Delete Customer")
+        print("4. Add Loan")
+        print("5. Update Loan")
+        print("6. Delete Loan")
+        print("7. Calculate Interest")
+        print("8. Generate Payment Schedule")
+        print("9. View Customer loan details")
+        print("10.Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            customer_id = input("Enter customer ID: ")
+            name = input("Enter customer name: ")
+            address = input("Enter customer address: ")
+            customer = Customer(customer_id, name, address)
+            bank.add_customer(customer)
+            print(f"Customer {customer_id} added.")
+
+        elif choice == "2":
+            customer_id = input("Enter customer ID to update: ")
+            name = input("Enter new name (leave blank to skip): ")
+            address = input("Enter new address (leave blank to skip): ")
+            bank.update_customer(customer_id, name, address)
+
+        elif choice == "3":
+            customer_id = input("Enter customer ID to delete: ")
+            bank.delete_customer(customer_id)
+
+        elif choice == "4":
+            customer_id = input("Enter customer ID for the loan: ")
+            loan_amount = float(input("Enter loan amount: "))
+            interest_rate = float(input("Enter interest rate (as a percentage): "))
+            loan_term = int(input("Enter loan term (in years): "))
+            loan = Loan(customer_id, loan_amount, interest_rate, loan_term)
+            bank.add_loan(loan)
+            print(f"Loan for Customer {customer_id} added.")
+
+        elif choice == "5":
+            customer_id = input("Enter customer ID to update loan: ")
+            loan_amount = input("Enter new loan amount (leave blank to skip): ")
+            interest_rate = input("Enter new interest rate (leave blank to skip): ")
+            loan_term = input("Enter new loan term in years (leave blank to skip): ")
+            bank.update_loan(customer_id,
+                             float(loan_amount) if loan_amount else None,
+                             float(interest_rate) if interest_rate else None,
+                             int(loan_term) if loan_term else None)
+
+        elif choice == "6":
+            customer_id = input("Enter customer ID to delete loan: ")
+            bank.delete_loan(customer_id)
+
+        elif choice == "7":
+            customer_id = input("Enter customer ID to calculate interest: ")
+            loan = bank.get_loan(customer_id)
+            if loan:
+                interest = loan.calculate_interest()
+                print(f"Interest: {interest}")
+            else:
+                print("Loan not found.")
+
+        elif choice == "8":
+            customer_id = input("Enter customer ID to generate payment schedule: ")
+            loan = bank.get_loan(customer_id)
+            if loan:
+                monthly_payment = loan.generate_payment_schedule()
+                print(f"Monthly Payment: {monthly_payment:.2f}")
+            else:
+                print("Loan not found.")
+
+        elif choice == "9":
+            customer_id = input("Enter customer ID to view: ")
+            customer = bank.get_customer(customer_id)
+            loan = bank.get_loan(customer_id)  # Retrieve the loan associated with the customer
+
+            if customer:
+                print(f"Customer ID: {customer.customer_id}")
+                print(f"Name: {customer.name}")
+                print(f"Address: {customer.address}")
+
+                if loan:
+                    print(f"Loan Amount: {loan.loan_amount}")
+                    print(f"Interest Rate: {loan.interest_rate * 100 * 12:.2f}%")  # Convert back to annual percentage
+                    print(f"Loan Term: {loan.loan_term // 12} years")
+                else:
+                    print("No loan found for this customer.")
+            else:
+                print("Customer not found.")
+
+        elif choice == "10":
+            print("Exiting...")
+            break
+        else:
+            print("Invalid choice, Please enter a valid choice")
+
+if _name_ == "_main_":
+    main()
